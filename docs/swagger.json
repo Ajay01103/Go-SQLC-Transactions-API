@@ -1,0 +1,224 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Go Transactions API",
+    "description": "REST API built with Go, Chi, sqlc and the repository pattern.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8000",
+      "description": "Local development server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Health",
+      "description": "Liveness check — confirms the server is up and reachable."
+    },
+    {
+      "name": "Auth",
+      "description": "Authentication endpoints — register a new account or log in to obtain a JWT access token valid for **7 days**."
+    },
+    {
+      "name": "Users",
+      "description": "User profile endpoints — requires a valid `Bearer` token in the `Authorization` header."
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "Health check",
+        "responses": {
+          "200": {
+            "description": "Server is running",
+            "content": {
+              "text/plain": {
+                "schema": { "type": "string", "example": "all good" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Register a new user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RegisterRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User registered successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error — missing required fields",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict — an account with this email already exists",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": { "error": "an account with this email already exists" }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Login with email and password",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LoginRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/current-user": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Get current logged-in user",
+        "description": "Returns the authenticated user's profile. Requires a valid Bearer JWT obtained from /auth/login or /auth/register.",
+        "security": [
+          { "bearerAuth": [] }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authenticated user profile",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/UserPayload" }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or expired Bearer token",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": { "error": "missing or invalid authorization header" }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "RegisterRequest": {
+        "type": "object",
+        "required": ["name", "email", "password"],
+        "properties": {
+          "name":            { "type": "string", "example": "Jane Doe" },
+          "email":           { "type": "string", "format": "email", "example": "jane@example.com" },
+          "password":        { "type": "string", "format": "password", "example": "secret123" },
+          "profile_picture": { "type": "string", "default": "", "example": "https://example.com/avatar.png", "description": "Optional — defaults to empty string" }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email":    { "type": "string", "format": "email", "example": "jane@example.com" },
+          "password": { "type": "string", "format": "password", "example": "secret123" }
+        }
+      },
+      "UserPayload": {
+        "type": "object",
+        "properties": {
+          "id":              { "type": "string", "example": "cma3k8f200000abc1xyz23def" },
+          "name":            { "type": "string", "example": "Jane Doe" },
+          "email":           { "type": "string", "example": "jane@example.com" },
+          "profile_picture": { "type": "string", "example": "", "description": "Empty string if not provided" },
+          "created_at":      { "type": "string", "example": "2026-02-24 10:00:00 +0000 UTC" }
+        }
+      },
+      "AuthResponse": {
+        "type": "object",
+        "properties": {
+          "access_token": { "type": "string", "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...", "description": "JWT bearer token, valid for 7 days" },
+          "user":         { "$ref": "#/components/schemas/UserPayload" }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string", "example": "an account with this email already exists" }
+        }
+      }
+    }
+  }
+}

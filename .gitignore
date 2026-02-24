@@ -1,0 +1,6 @@
+# Air hot-reload build output
+tmp/
+air.log
+
+# Environment
+.env

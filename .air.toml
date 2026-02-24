@@ -1,0 +1,48 @@
+root = "."
+testdata_dir = "testdata"
+tmp_dir = "tmp"
+
+[build]
+  # Build the cmd package into tmp/main.exe
+  bin = "./tmp/main.exe"
+  cmd = "go build -o ./tmp/main.exe ./cmd"
+
+  # Kill the running process before rebuilding
+  kill_delay = "200ms"
+  send_interrupt = true
+
+  # Delay before triggering a rebuild after a file change (debounce)
+  delay = 500
+
+  # Directories and files to watch for changes
+  include_dir = ["cmd", "internal"]
+  include_ext = ["go", "env"]
+
+  # Exclude generated sqlc files (they shouldn't trigger rebuilds)
+  exclude_dir  = ["tmp", "docs", "testdata", "internal/adapters/postgresql/sqlc"]
+  exclude_file = []
+  exclude_regex = ["_test\\.go$"]
+
+  # Show stdout/stderr of the running binary
+  log = "air.log"
+  rerun = false
+  rerun_delay = 500
+  stop_on_error = true
+
+[color]
+  app     = "green"
+  build   = "yellow"
+  main    = "magenta"
+  runner  = "cyan"
+  watcher = "cyan"
+
+[log]
+  main_only = false
+  time      = true
+
+[misc]
+  # Clean tmp dir on exit
+  clean_on_exit = true
+
+[proxy]
+  enabled = false
