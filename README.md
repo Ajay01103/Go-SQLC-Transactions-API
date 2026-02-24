@@ -68,8 +68,8 @@ A production-ready REST API built with **Go**, following the **Repository Patter
 
 **1. Clone and install dependencies**
 ```bash
-git clone https://github.com/Ajay01103/goTransactonsAPI
-cd goTransactonsAPI
+git clone https://github.com/Ajay01103/Go-SQLC-Transactions-API
+cd Go-SQLC-Transactions-API
 go mod download
 ```
 
