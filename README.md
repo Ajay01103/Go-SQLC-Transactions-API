@@ -2,6 +2,9 @@
 
 A production-ready REST API built with **Go**, following the **Repository Pattern** with clean separation of concerns across handler → service → repository layers.
 
+<img width="1898" height="914" alt="image" src="https://github.com/user-attachments/assets/68ad7736-9b8f-4176-9a6d-1b11fe295216" />
+
+
 ## Tech Stack
 
 | Concern | Library |
